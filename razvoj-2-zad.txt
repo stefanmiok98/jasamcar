@@ -1,0 +1,143 @@
+#include <LiquidCrystal.h>
+#include <util/delay.h>
+#include <string.h>
+LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
+
+char ocitaj_taster()
+{
+  char taster = 0;
+  unsigned char row;
+  
+  MCUCR &= ~0x10;
+  PORTD = 0x0f; 
+  
+  for(row = 0x80; row != 0x08; row >>= 1)
+  {
+    DDRD = row;
+	_delay_ms(2);
+    
+    switch(row | ((~PIND) & 0x0f))
+    {
+      case 0x88:
+      	taster = 49; break;
+      case 0x84:
+      	taster = 50; break;
+      case 0x82:
+      	taster = 51; break;
+      case 0x81:
+      	taster = 43; break;
+		
+	  case 0x48:
+      	taster = 52; break;
+      case 0x44:
+      	taster = 53; break;
+      case 0x42:
+      	taster = 54; break;
+      case 0x41:
+      	taster = 45; break;
+		
+	  case 0x28:
+      	taster = 55; break;
+      case 0x24:
+      	taster = 56; break;
+      case 0x22:
+      	taster = 57; break;
+      case 0x21:
+      	taster = 42; break;
+		
+	  case 0x18:
+      	taster = 61; break;
+      case 0x14:
+      	taster = 48; break;
+      case 0x12:
+      	taster = 32; break; // ne koristimo pa nista ne ispisuje
+      case 0x11:
+      	taster = 47; break;
+    }
+  }
+  
+  return taster;
+}
+
+int main()
+{
+  	lcd.begin(16, 2);
+	int i=0,j=0,m=0;
+    char broj1[6]; 
+    char broj2[6];
+    int operacija;
+  	int a,b,c;
+	while(1)
+      
+    { 
+        char taster = ocitaj_taster();
+      if(taster==47 || taster==45 || taster==43 || taster==42)
+         {
+          
+          i++;
+          lcd.print(taster);          // DJ^2
+          operacija=taster;
+          taster=0;
+          _delay_ms(200);
+         }        
+
+      if (taster != 0 && i==0)
+        {
+         lcd.print(taster);
+         _delay_ms(200);
+         broj1[j]=taster;
+       		j++;     	
+        }
+      
+      if(i==1 && taster!=0)
+         {
+            broj1[j]='\0';
+           a=atoi(broj1);     // prebacujem string u integer kako bi mogao baratati sa operacijama
+            _delay_ms(200);
+         }
+      
+      
+      if (taster != 0 && i==1)
+       {
+         lcd.print(taster);
+         _delay_ms(200);
+         broj2[m]=taster;
+       		m++;
+     	
+       }
+      if(i==1 && taster==61)
+         {
+            broj2[m]='\0';
+           b=atoi(broj2);     // prebacujem string u integer kako bi mogao baratati sa operacijama
+            _delay_ms(200);
+         }
+      
+      
+      if(taster==61){   
+      switch(operacija){
+      	    case 43:
+            c=a+b; break;                 //MADE POSSIBLE BY DJORDJE DJOZLIJA
+            case 45:
+            c=a-b; break;
+            case 42:
+            c=a*b; break;
+            case 47:
+            c=a/b; break;
+          }
+        lcd.print(c);
+        _delay_ms(200);
+        }
+      
+      
+      if(taster==32){   //brisanje citavog ekrana na neiskoristeno dugme #
+        lcd.clear();    //                        i moguce ponovno racunanje
+        i=0;
+        j=0;
+        m=0;
+        operacija=0;
+      }
+           
+
+  }
+  return 0;
+}
